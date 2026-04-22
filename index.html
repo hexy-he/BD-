@@ -119,11 +119,11 @@ select:focus,input[type=text]:focus{outline:none;border-color:var(--accent);box-
 .tag-inline-input::placeholder{color:var(--color-text-tertiary)}
 
 .tag-dropdown{
-  display:none;position:absolute;top:calc(100% + 5px);left:0;right:0;
+  display:none;position:fixed;
   background:var(--color-background-primary);
   border:1px solid var(--color-border-secondary);border-radius:10px;
-  box-shadow:0 6px 20px rgba(0,0,0,.12);z-index:200;
-  max-height:230px;overflow-y:auto;padding:4px;
+  box-shadow:0 6px 20px rgba(0,0,0,.12);z-index:9999;
+  max-height:420px;overflow-y:auto;padding:4px;
 }
 .tag-dropdown.open{display:block}
 .tag-opt{
@@ -166,6 +166,32 @@ select:focus,input[type=text]:focus{outline:none;border-color:var(--accent);box-
 .tag-opt-create:hover{background:var(--accent-bg)}
 .tag-opt-empty{padding:8px;font-size:12px;color:var(--color-text-tertiary);text-align:center}
 .tag-section-label{padding:4px 8px 2px;font-size:10px;font-weight:600;letter-spacing:.06em;text-transform:uppercase;color:var(--color-text-tertiary)}
+.tag-footer{
+  display:flex;justify-content:flex-end;align-items:center;gap:6px;
+  padding:6px 8px 4px;margin-top:2px;
+  border-top:1px solid var(--color-border-tertiary);
+  position:sticky;bottom:0;background:var(--color-background-primary);
+}
+.tag-footer-btn{padding:4px 12px;font-size:12px;border-radius:6px;cursor:pointer;font-family:var(--font-sans);transition:all .15s}
+.tag-footer-edit{background:none;border:1px solid var(--color-border-primary);color:var(--color-text-secondary)}
+.tag-footer-edit:hover{border-color:var(--accent);color:var(--accent)}
+.tag-footer-edit.active{border-color:var(--accent);color:var(--accent);background:var(--accent-bg)}
+.tag-footer-done{background:var(--accent);border:none;color:#fff}
+.tag-footer-done:hover{background:#2b6fb5}
+.tag-dropdown.edit-mode .tag-opt-actions{opacity:1}
+.tag-full-edit-row{
+  display:flex;align-items:center;gap:6px;
+  padding:4px 6px;border-radius:7px;margin:2px 0;
+}
+.tag-full-edit-row:hover{background:var(--color-background-secondary)}
+.tag-full-input{
+  flex:1;padding:5px 8px;
+  border:1px solid var(--color-border-primary);border-radius:6px;
+  font-size:13px;outline:none;font-family:var(--font-sans);
+  background:var(--color-background-primary);color:var(--color-text-primary);
+  transition:border-color .15s,box-shadow .15s;
+}
+.tag-full-input:focus{border-color:var(--accent);box-shadow:0 0 0 3px rgba(55,138,221,.12)}
 </style>
 </head>
 <body>
@@ -247,20 +273,21 @@ select:focus,input[type=text]:focus{outline:none;border-color:var(--accent);box-
 <script>
 /* ── Seed data ── */
 const SEED = [
-  {id:1,name:"璞跃",res:["B端资源","90后","市场","用户增长","制造业","API资源","token资源"],desc:"B端资源/90后工作经验（市场、用户增长、制造业、API资源、token资源）"},
-  {id:2,name:"科创学院",res:["00后","硬件","创业"],desc:"00后硬件创业者"},
-  {id:3,name:"清华信息港",res:["00后","硬件","创业"],desc:"00后硬件创业者"},
-  {id:4,name:"Attrax黑客松",res:["00后","硬件","软件","创业"],desc:"00后硬件创业者+软件类选手"},
-  {id:5,name:"科创之光",res:["00后","软件","技术","创业"],desc:"00后软硬件技术类学生（有创业想法但还很稚嫩）"},
-  {id:6,name:"南科大张英哲",res:["算法","实习"],desc:"算法类同学/实习生招募"},
-  {id:7,name:"茶蛋和Frank",res:["北美","市场","用户增长"],desc:"北美品牌/市场/用户增长经验"},
-  {id:8,name:"SheNicest",res:["00后","硬件","大厂"],desc:"00后硬件为主，少部分大厂员工（创业性质的不多）"}
+  {id:1,name:"璞跃",res:["AI","北美市场用增","医院B端资源","90后软件创业者"],desc:"90后创业者为主，自带工作经验和行业资源，资源类型多\nAI软件居多，硬件资源为传统实业（硬件）"},
+  {id:2,name:"科创学院",res:["00后硬件创业者"],desc:"00后硬件创业者"},
+  {id:3,name:"清华信息港",res:["90后软件创业者","90后硬件创业者"],desc:"创业者画像：90后居多，院校背景有港中文/清华/北航/华科不等\n信息港感知：50%的企业只将此当作办公场地租赁地，另外有其他总部公司，入驻信息港5年左右居多"},
+  {id:4,name:"Attrax黑客松",res:["00后硬件创业者","00后软件学生"],desc:"硬件里有00后创业者，软件多为有创业想法但没有实践的学生"},
+  {id:5,name:"科创之光",res:["00后软件学生","00后算法类学生","00后硬件学生"],desc:"00后软硬件技术类学生（有创业想法但还很稚嫩）"},
+  {id:6,name:"南科大张英哲",res:["00后算法类学生"],desc:"人脉网络不错，但判断能力和游说能力一般，大概找不到好的"},
+  {id:7,name:"茶蛋和Frank",res:["北美市场用增"],desc:"擅长做品牌做营销，技术类人才招不到，人很热情，做IP不错"},
+  {id:8,name:"SheNicest",res:["00后硬件学生"],desc:"00后硬件为主，少部分大厂员工（创业性质的不多）"}
 ];
+const SEED_TAGS = ["00后软件学生","00后算法类学生","00后硬件创业者","00后硬件学生","90后软件创业者","90后硬件创业者","北美市场用增","医院B端资源","AI"];
 
 /* ── Core data ── */
 let db = [];
 let nid = 1;
-let tagList = []; // master list of all resource tags
+let tagList = [];
 
 function load(){
   try{
@@ -273,10 +300,7 @@ function load(){
     const t = localStorage.getItem('bd_tags');
     if(t){ tagList=JSON.parse(t); return; }
   }catch(e){}
-  // Bootstrap tagList from existing channel data
-  const set = new Set();
-  db.forEach(c=>c.res.forEach(r=>set.add(r)));
-  tagList = [...set].sort();
+  tagList = [...SEED_TAGS];
 }
 
 function persist(){ try{ localStorage.setItem('bd_v2',JSON.stringify({db,nid})); }catch(e){} }
@@ -347,21 +371,45 @@ function onPreset(v){ document.getElementById('qinput').value=''; setActive(v?ma
 function onQuery(v){ document.getElementById('preset').value=''; setActive(v?matchQ(v):new Set()); }
 
 /* ── Tag Picker state ── */
-let formTags = [];       // selected tags in current form
-let tagSearchVal = '';   // text in the inline input
-let editingTagIdx = -1;  // index in tagList being renamed (-1 = none)
+let formTags = [];
+let tagSearchVal = '';
+let editingTagIdx = -1;
 let dropdownOpen = false;
+let tagEditMode = false;
 
 /* ── Tag Picker: open / close ── */
+function positionTagDropdown(){
+  const box=document.getElementById('tag-box');
+  const dd=document.getElementById('tag-dropdown');
+  const rect=box.getBoundingClientRect();
+  dd.style.left=rect.left+'px';
+  dd.style.width=rect.width+'px';
+  const spaceBelow=window.innerHeight-rect.bottom-8;
+  const spaceAbove=rect.top-8;
+  if(spaceBelow<200&&spaceAbove>spaceBelow){
+    dd.style.top='auto';
+    dd.style.bottom=(window.innerHeight-rect.top+5)+'px';
+    dd.style.maxHeight=Math.min(420,spaceAbove)+'px';
+  } else {
+    dd.style.top=(rect.bottom+5)+'px';
+    dd.style.bottom='auto';
+    dd.style.maxHeight=Math.min(420,spaceBelow)+'px';
+  }
+}
+
 function openTagDropdown(){
   dropdownOpen=true;
   document.getElementById('tag-box').classList.add('open');
-  document.getElementById('tag-dropdown').classList.add('open');
+  positionTagDropdown();
+  const dd=document.getElementById('tag-dropdown');
+  dd.classList.add('open');
+  dd.scrollTop=0;
   renderTagDropdown();
 }
 function closeTagDropdown(){
   dropdownOpen=false;
   editingTagIdx=-1;
+  tagEditMode=false;
   document.getElementById('tag-box').classList.remove('open');
   document.getElementById('tag-dropdown').classList.remove('open');
 }
@@ -384,48 +432,54 @@ function renderTagChips(){
 /* ── Tag Picker: render dropdown ── */
 function renderTagDropdown(){
   const dd=document.getElementById('tag-dropdown');
-  const filter=tagSearchVal.trim().toLowerCase();
-  const filtered=tagList.filter(t=>!filter||t.toLowerCase().includes(filter));
-  const exactMatch=tagList.some(t=>t.toLowerCase()===tagSearchVal.trim().toLowerCase()&&tagSearchVal.trim());
-
   let html='';
 
-  if(filtered.length){
-    html+=`<div class="tag-section-label">标签库</div>`;
-    filtered.forEach((tag,fi)=>{
-      const realIdx=tagList.indexOf(tag);
-      const sel=formTags.includes(tag);
-      if(editingTagIdx===realIdx){
-        html+=`<div class="tag-edit-row">
-          <input class="tag-edit-input" id="tag-edit-input" value="${esc(tag)}" autocomplete="off"/>
-          <button class="tag-edit-ok" data-confirm="${realIdx}">✓</button>
-          <button class="tag-edit-cancel" data-cancel="1">✕</button>
+  if(tagEditMode){
+    // 编辑模式：每个标签一个可编辑输入框
+    html+=`<div class="tag-section-label">编辑标签库</div>`;
+    if(tagList.length){
+      tagList.forEach((tag,idx)=>{
+        html+=`<div class="tag-full-edit-row">
+          <input class="tag-full-input" data-fulleditidx="${idx}" value="${esc(tag)}" autocomplete="off"/>
+          <button class="tag-icon-btn del" data-del="${idx}" title="删除">✕</button>
         </div>`;
-      } else {
+      });
+    } else {
+      html+=`<div class="tag-opt-empty">暂无标签</div>`;
+    }
+    html+=`<div class="tag-footer">
+      <button class="tag-footer-btn tag-footer-done" data-exitediting="1">完成</button>
+    </div>`;
+  } else {
+    // 正常选择模式
+    const filter=tagSearchVal.trim().toLowerCase();
+    const filtered=tagList.filter(t=>!filter||t.toLowerCase().includes(filter));
+    const exactMatch=tagList.some(t=>t.toLowerCase()===tagSearchVal.trim().toLowerCase()&&tagSearchVal.trim());
+
+    if(filtered.length){
+      html+=`<div class="tag-section-label">标签库</div>`;
+      filtered.forEach((tag)=>{
+        const realIdx=tagList.indexOf(tag);
+        const sel=formTags.includes(tag);
         html+=`<div class="tag-opt${sel?' is-selected':''}" data-toggle="${realIdx}">
           <span class="tag-opt-check">${sel?'✓':''}</span>
           <span class="tag-opt-name">${esc(tag)}</span>
-          <span class="tag-opt-actions">
-            <button class="tag-icon-btn rename" data-rename="${realIdx}" title="重命名">✎</button>
-            <button class="tag-icon-btn del" data-del="${realIdx}" title="删除">✕</button>
-          </span>
         </div>`;
-      }
-    });
-  }
-
-  if(tagSearchVal.trim()&&!exactMatch){
-    html+=`<div class="tag-opt-create" data-create="1">+ 新增 &ldquo;${esc(tagSearchVal.trim())}&rdquo;</div>`;
-  }
-  if(!filtered.length&&!tagSearchVal.trim()){
-    html+=`<div class="tag-opt-empty">暂无标签，输入内容新增</div>`;
+      });
+    }
+    if(tagSearchVal.trim()&&!exactMatch){
+      html+=`<div class="tag-opt-create" data-create="1">+ 新增 &ldquo;${esc(tagSearchVal.trim())}&rdquo;</div>`;
+    }
+    if(!filtered.length&&!tagSearchVal.trim()){
+      html+=`<div class="tag-opt-empty">暂无标签，输入内容新增</div>`;
+    }
+    html+=`<div class="tag-footer">
+      <button class="tag-footer-btn tag-footer-edit" data-enterediting="1">编辑</button>
+      <button class="tag-footer-btn tag-footer-done" data-close="1">完成</button>
+    </div>`;
   }
 
   dd.innerHTML=html;
-  if(editingTagIdx>=0){
-    const inp=document.getElementById('tag-edit-input');
-    if(inp){ inp.focus(); inp.select(); }
-  }
 }
 
 /* ── Tag Picker: event delegation on dropdown ── */
@@ -436,34 +490,60 @@ document.addEventListener('mousedown',e=>{
 });
 
 document.addEventListener('click',e=>{
-  // chips × button
   const removeIdx=e.target.dataset.remove;
   if(removeIdx!==undefined){
     formTags.splice(parseInt(removeIdx),1);
     renderTagChips(); renderTagDropdown(); return;
   }
-  // dropdown items
   const dd=document.getElementById('tag-dropdown');
   if(!dd.contains(e.target)) return;
 
+  if(e.target.dataset.close!==undefined){ closeTagDropdown(); return; }
+  if(e.target.dataset.enterediting!==undefined){ tagEditMode=true; renderTagDropdown(); return; }
+  if(e.target.dataset.exitediting!==undefined){ tagEditMode=false; renderTagDropdown(); return; }
   if(e.target.dataset.create!==undefined||e.target.closest('[data-create]')){
     createAndAddTag(); return;
   }
-  if(e.target.dataset.cancel!==undefined){
-    editingTagIdx=-1; renderTagDropdown(); return;
-  }
-  const confirmIdx=e.target.dataset.confirm;
-  if(confirmIdx!==undefined){ confirmRenameTag(parseInt(confirmIdx)); return; }
-
-  const renameIdx=e.target.dataset.rename;
-  if(renameIdx!==undefined){ e.stopPropagation(); startEditTag(parseInt(renameIdx)); return; }
-
   const delIdx=e.target.dataset.del;
   if(delIdx!==undefined){ e.stopPropagation(); deleteMasterTag(parseInt(delIdx)); return; }
 
   const toggleIdx=e.target.closest('[data-toggle]');
   if(toggleIdx&&dd.contains(toggleIdx)){ toggleFormTag(parseInt(toggleIdx.dataset.toggle)); return; }
 });
+
+// 编辑模式：输入框 rename（失焦或回车时保存）
+document.addEventListener('focusout',e=>{
+  if(!tagEditMode) return;
+  const idx=e.target.dataset.fulleditidx;
+  if(idx===undefined) return;
+  applyFullEditRename(parseInt(idx), e.target.value);
+});
+document.addEventListener('keydown',e=>{
+  if(!tagEditMode) return;
+  const idx=e.target.dataset.fulleditidx;
+  if(idx===undefined) return;
+  if(e.key==='Enter'){ e.target.blur(); }
+  if(e.key==='Escape'){ e.target.value=tagList[parseInt(idx)]||''; e.target.blur(); }
+});
+
+function applyFullEditRename(idx, rawVal){
+  const newTag=rawVal.trim();
+  const oldTag=tagList[idx];
+  if(!newTag||newTag===oldTag) return;
+  if(tagList.some((t,i)=>i!==idx&&t.toLowerCase()===newTag.toLowerCase())){
+    // 重复名，还原
+    const inp=document.querySelector(`[data-fulleditidx="${idx}"]`);
+    if(inp) inp.value=oldTag;
+    return;
+  }
+  tagList[idx]=newTag;
+  // 同步所有渠道
+  db.forEach(c=>{ const i=c.res.indexOf(oldTag); if(i>-1) c.res[i]=newTag; });
+  // 同步已选标签
+  const fi=formTags.indexOf(oldTag);
+  if(fi>=0) formTags[fi]=newTag;
+  persistTags(); persist(); buildDropdown(); renderTagChips();
+}
 
 /* ── Tag Picker: inline input handlers ── */
 function onTagInput(v){
@@ -519,7 +599,6 @@ function createAndAddTag(){
 function startEditTag(idx){
   editingTagIdx=idx;
   renderTagDropdown();
-  // attach keydown to the edit input after render
   const inp=document.getElementById('tag-edit-input');
   if(inp) inp.addEventListener('keydown',onTagEditKeydown);
 }
@@ -534,12 +613,9 @@ function confirmRenameTag(idx){
   if(tagList.some((t,i)=>i!==idx&&t.toLowerCase()===newTag.toLowerCase())){
     alert('该标签名已存在'); inp.focus(); return;
   }
-  // rename in tagList
   tagList[idx]=newTag;
   tagList.sort((a,b)=>a.localeCompare(b,'zh'));
-  // rename in all channels
   db.forEach(c=>{ const i=c.res.indexOf(oldTag); if(i>-1) c.res[i]=newTag; });
-  // rename in form selection
   const fi=formTags.indexOf(oldTag);
   if(fi>=0) formTags[fi]=newTag;
   editingTagIdx=-1;
@@ -583,7 +659,6 @@ function saveChannel(){
   const eid=document.getElementById('f-eid').value;
   if(!name){ alert('请填写渠道名称'); return; }
   const tags=[...formTags];
-  // ensure any new tags from the form are in tagList
   tags.forEach(t=>{ if(!tagList.includes(t)){ tagList.push(t); tagList.sort((a,b)=>a.localeCompare(b,'zh')); } });
   if(eid){
     const idx=db.findIndex(c=>c.id==eid);
@@ -630,7 +705,7 @@ function switchTab(t){
   if(t==='map') setTimeout(drawLines,50);
 }
 
-/* ── Tag inline input wire-up (after DOM ready) ── */
+/* ── Tag inline input wire-up ── */
 document.addEventListener('DOMContentLoaded',()=>{
   const inp=document.getElementById('tag-inline-input');
   inp.addEventListener('focus',openTagDropdown);
@@ -646,7 +721,8 @@ function esc(s){ return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').rep
 load();
 buildDropdown();
 renderMap();
-window.addEventListener('resize',drawLines);
+window.addEventListener('resize',()=>{ drawLines(); if(dropdownOpen) positionTagDropdown(); });
+window.addEventListener('scroll',()=>{ if(dropdownOpen) positionTagDropdown(); },true);
 </script>
 </body>
 </html>
